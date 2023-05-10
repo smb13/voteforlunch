@@ -1,5 +1,6 @@
 package ru.mshamanin.voteforlunch.repository;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import ru.mshamanin.voteforlunch.error.NotFoundException;
@@ -16,6 +17,7 @@ public interface UserRepository extends BaseRepository<User> {
 
     Sort SORT_EMAIL = Sort.by(Sort.Direction.ASC, "email");
 
+    @Cacheable("users")
     @Query("SELECT u FROM User u WHERE LOWER(u.email) = LOWER(:email)")
     Optional<User> findByEmailIgnoreCase(String email);
 

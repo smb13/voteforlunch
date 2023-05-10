@@ -1,5 +1,6 @@
 package ru.mshamanin.voteforlunch.repository;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 import ru.mshamanin.voteforlunch.error.DataConflictException;
@@ -19,6 +20,7 @@ public interface MenuRepository extends BaseRepository<Menu> {
 
         List<Menu> findByRestaurantId(int restaurantId);
 
+        @Cacheable("menus")
         List<Menu> findByDateAndRestaurantId(LocalDate date, int restaurantId);
 
         default Menu getExistedOrBelonged(int id, int restaurantId) {

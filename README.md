@@ -1,7 +1,7 @@
 Launch Voting Management Application
 ====================================
 
-**The application is a result of graduation assignment performing of Java Spring Developer Course (TopJava). The project uses some cutting age technologies like Spring Boot 2.x, Lombok, JPA, H2, Jackson, JUnit. The assignment was given:**
+**The application is a result of graduation assignment performing for Java Spring Developer Course (TopJava). The project uses some cutting edge technologies, like Spring Boot 2.x, Lombok, JPA(Hibernate), H2, Jackson, JUnit. The assignment was given:**
 
 Technical requirement:
 ----------------------

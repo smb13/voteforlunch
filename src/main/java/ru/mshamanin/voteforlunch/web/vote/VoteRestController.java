@@ -1,5 +1,7 @@
 package ru.mshamanin.voteforlunch.web.vote;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -19,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = VoteRestController.REST_URL, produces = MediaType.APPLICATION_JSON_VALUE)
+@Tag(name = "Vote REST-controller for all users")
 public class VoteRestController {
     static final String REST_URL = "/api/votes";
 
@@ -33,6 +36,7 @@ public class VoteRestController {
     }
 
     @GetMapping
+    @Operation(summary = "Get all votes of authorized user")
     public List<Vote> getAll(@AuthenticationPrincipal AuthUser authUser) {
         int userId = authUser.id();
         log.info("getAll for user {}", userId);
@@ -40,6 +44,7 @@ public class VoteRestController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get vote with {id} of authorized user")
     public ResponseEntity<Vote> get(@AuthenticationPrincipal AuthUser authUser, @PathVariable int id) {
         int userId = authUser.id();
         log.info("get vote by id {} for user {}", id, userId);
@@ -47,6 +52,7 @@ public class VoteRestController {
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Create vote by authorized user for restaurant with restaurantId")
     public ResponseEntity<Vote> vote(@AuthenticationPrincipal AuthUser authUser, @RequestBody int restaurantId) {
         int userId = authUser.id();
         log.info("create vote for restaurant id {} for user id {}", restaurantId, userId);
@@ -58,6 +64,7 @@ public class VoteRestController {
     }
 
     @GetMapping("/by-date")
+    @Operation(summary = "Get vote of authorized user for particular date")
     public Vote getByDate(@AuthenticationPrincipal AuthUser authUser, @RequestParam LocalDate date) {
         int userId = authUser.id();
         return voteRepository.findByDate(date, userId).orElseThrow(() -> new NotFoundException("Vote with date=" + date + " for user id=" + userId + " not found"));

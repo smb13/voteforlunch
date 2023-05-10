@@ -23,3 +23,17 @@ Each restaurant provides a new menu each day.
 
 As a result, provide a link to github repository. It should contain the code, README.md with API documentation and couple curl commands to test it (better - link to Swagger).
 ___
+
+How to use the application:
+----------------------
+
+To install use the commands:
+ ```
+ git clone https://github.com/smb13/voteforlunch.git
+ ```
+To run the application:
+ ```
+ mvn spring-boot:run
+ ```
+
+The Swagger page with REST API documentation will be available by link [REST API documentation](http://localhost:8080/swagger-ui/index.html)

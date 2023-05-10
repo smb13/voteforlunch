@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Configuration;
                         <p><b>Тестовые учетные данные:</b><br>
                         - user@mail.ru / password<br>
                         - admin@mail.ru / password<br>
+                        Тестовые данные доступны за даты с 29.01.2023 по 31.01.2023                        
                         """,
                 contact = @Contact(name = "Mikhail Shamanin", email = "mshamanin@gmal.com")
         ),

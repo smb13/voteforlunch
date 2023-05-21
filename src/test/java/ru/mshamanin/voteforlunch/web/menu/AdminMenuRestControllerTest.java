@@ -14,15 +14,11 @@ import ru.mshamanin.voteforlunch.repository.MenuRepository;
 import ru.mshamanin.voteforlunch.util.JsonUtil;
 import ru.mshamanin.voteforlunch.web.AbstractRestControllerTest;
 
-import java.time.LocalDate;
-import java.time.Month;
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.mshamanin.voteforlunch.web.dish.DishTestData.rest1Menu1Dishes;
 import static ru.mshamanin.voteforlunch.web.menu.MenuTestData.*;
 import static ru.mshamanin.voteforlunch.web.restaurant.RestaurantTestData.RESTAURANT1_ID;
 import static ru.mshamanin.voteforlunch.web.user.UserTestData.ADMIN_EMAIL;
@@ -84,14 +80,15 @@ class AdminMenuRestControllerTest extends AbstractRestControllerTest {
 
     @Test
     @WithUserDetails(value = ADMIN_EMAIL)
-    void getByDateAndNameContaining() throws Exception {
-        perform(MockMvcRequestBuilders.get(REST_URL_WITH_RESTAURANT1_ID_AND_SLASH + "by-date-and-name")
-                .param("date", "2023-01-30")
-                .param("name", "Греч"))
+    void getWithDishes() throws Exception {
+        Menu withDishes = new Menu(rest1Menu1);
+        withDishes.setDishes(rest1Menu1Dishes);
+        perform(MockMvcRequestBuilders.get(REST_URL_WITH_RESTAURANT1_ID_AND_SLASH
+                + RESTAURANT1_MENU1_ID + "/with-dishes"))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MENU_MATCHER.contentJson(List.of(rest1Menu4)));
+                .andExpect(MENU_WITH_DISHES_MATCHER.contentJson(withDishes));
     }
 
     @Test
@@ -108,10 +105,6 @@ class AdminMenuRestControllerTest extends AbstractRestControllerTest {
         newMenu.setId(newId);
         MENU_MATCHER.assertMatch(created, newMenu);
         MENU_MATCHER.assertMatch(menuRepository.getExisted(newId), newMenu);
-        List<Menu> newRest1MenusFor20230130 = new ArrayList<>(rest1MenusFor20230130);
-        newRest1MenusFor20230130.add(newMenu);
-        MENU_MATCHER.assertMatch(menuRepository.findByDateAndRestaurantId(LocalDate.of(2023, Month.JANUARY, 30), RESTAURANT1_ID),
-                newRest1MenusFor20230130);
     }
 
     @Test
@@ -143,8 +136,8 @@ class AdminMenuRestControllerTest extends AbstractRestControllerTest {
     @Transactional(propagation = Propagation.NEVER)
     @WithUserDetails(value = ADMIN_EMAIL)
     void updateDuplicate() throws Exception {
-        Menu duplicateMenu = getUpdated();
-        duplicateMenu.setName(rest1Menu2.getName());
+        Menu duplicateMenu = new Menu(rest1Menu1);
+        duplicateMenu.setDate(rest1Menu2.getDate());
         perform(MockMvcRequestBuilders.put(REST_URL_WITH_RESTAURANT1_ID_AND_SLASH + RESTAURANT1_MENU1_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(JsonUtil.writeValue(duplicateMenu)))
@@ -163,7 +156,7 @@ class AdminMenuRestControllerTest extends AbstractRestControllerTest {
     @Test
     @WithUserDetails(value = ADMIN_EMAIL)
     void deleteDataConflict() throws Exception {
-        perform(MockMvcRequestBuilders.delete(REST_URL_WITH_RESTAURANT1_ID_AND_SLASH +  RESTAURANT2_MENU1_ID))
+        perform(MockMvcRequestBuilders.delete(REST_URL_WITH_RESTAURANT1_ID_AND_SLASH + RESTAURANT2_MENU1_ID))
                 .andDo(print())
                 .andExpect(status().isConflict());
     }

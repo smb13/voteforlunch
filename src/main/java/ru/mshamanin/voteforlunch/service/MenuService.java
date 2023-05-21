@@ -10,19 +10,20 @@ import ru.mshamanin.voteforlunch.repository.RestaurantRepository;
 
 @Service
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class MenuService {
     private final MenuRepository menuRepository;
     private final RestaurantRepository restaurantRepository;
 
     @Transactional
-    @CacheEvict(cacheNames = "menus", key = "{#menu.date, #restaurantId}")
+    @CacheEvict(cacheNames = "menus", key = "#menu.id")
     public Menu save(Menu menu, int restaurantId) {
         menu.setRestaurant(restaurantRepository.getExisted(restaurantId));
         return menuRepository.save(menu);
     }
 
     @Transactional
-    @CacheEvict(cacheNames = "menus", key = "{#menu.date, #menu.restaurant.id}")
+    @CacheEvict(cacheNames = "menus", key = "#menu.id")
     public void delete(Menu menu) {
         menuRepository.delete(menu);
     }

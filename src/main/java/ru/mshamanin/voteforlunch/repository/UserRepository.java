@@ -39,4 +39,9 @@ public interface UserRepository extends BaseRepository<User> {
     default List<User> getAll() {
         return findAll(SORT_EMAIL);
     }
+
+    @CacheEvict(cacheNames = "users", key = "'users'")
+    default void deleteUser(int id) {
+        deleteExisted(id);
+    }
 }

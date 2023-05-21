@@ -7,7 +7,7 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import ru.mshamanin.voteforlunch.model.User;
 import ru.mshamanin.voteforlunch.repository.UserRepository;
-
+import ru.mshamanin.voteforlunch.service.UserService;
 
 public abstract class AbstractUserController {
     protected final Logger log = LoggerFactory.getLogger(getClass());
@@ -17,6 +17,9 @@ public abstract class AbstractUserController {
 
     @Autowired
     protected UserRepository userRepository;
+
+    @Autowired
+    protected UserService userService;
 
     @InitBinder
     protected void initBinder(WebDataBinder binder) {
@@ -30,6 +33,6 @@ public abstract class AbstractUserController {
 
     public void delete(int id) {
         log.info("delete {}", id);
-        userRepository.deleteExisted(id);
+        userService.delete(id);
     }
 }

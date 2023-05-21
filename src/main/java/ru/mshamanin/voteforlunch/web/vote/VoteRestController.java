@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,6 +19,8 @@ import ru.mshamanin.voteforlunch.web.AuthUser;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
+
+import static ru.mshamanin.voteforlunch.util.validation.ValidationUtil.assureIdConsistent;
 
 @RestController
 @RequestMapping(value = VoteRestController.REST_URL, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -53,14 +56,25 @@ public class VoteRestController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Create vote by authorized user for restaurant with restaurantId")
-    public ResponseEntity<Vote> vote(@AuthenticationPrincipal AuthUser authUser, @RequestBody int restaurantId) {
+    public ResponseEntity<Vote> createVote(@AuthenticationPrincipal AuthUser authUser, @RequestBody int restaurantId) {
         int userId = authUser.id();
         log.info("create vote for restaurant id {} for user id {}", restaurantId, userId);
-        Vote created = voteService.save(restaurantId, userId);
+        Vote created = voteService.create(restaurantId, userId);
         URI uriOfNewResource = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path(REST_URL + "/{id}")
                 .buildAndExpand(created.getId()).toUri();
         return ResponseEntity.created(uriOfNewResource).body(created);
+    }
+
+    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Update vote by authorized user for restaurant with restaurantId")
+    public void update(@AuthenticationPrincipal AuthUser authUser, @PathVariable int id, @RequestBody Vote vote) {
+        int userId = authUser.id();
+        log.info("update vote {} for user id {}", vote, userId);
+        assureIdConsistent(vote, id);
+        voteRepository.getExistedOrBelonged(userId, id);
+        voteService.update(vote);
     }
 
     @GetMapping("/by-date")

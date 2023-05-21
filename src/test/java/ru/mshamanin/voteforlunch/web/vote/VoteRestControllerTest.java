@@ -6,6 +6,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import ru.mshamanin.voteforlunch.model.Vote;
 import ru.mshamanin.voteforlunch.repository.VoteRepository;
 import ru.mshamanin.voteforlunch.util.ClockHolder;
@@ -16,9 +18,10 @@ import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static ru.mshamanin.voteforlunch.service.VoteService.TOO_LATE_TO_VOTE_ERROR;
+import static ru.mshamanin.voteforlunch.service.VoteService.*;
 import static ru.mshamanin.voteforlunch.web.restaurant.RestaurantTestData.*;
 import static ru.mshamanin.voteforlunch.web.user.UserTestData.USER_EMAIL;
+import static ru.mshamanin.voteforlunch.web.user.UserTestData.USER_ID;
 import static ru.mshamanin.voteforlunch.web.vote.VoteTestData.*;
 
 public class VoteRestControllerTest extends AbstractRestControllerTest {
@@ -109,39 +112,89 @@ public class VoteRestControllerTest extends AbstractRestControllerTest {
     @WithUserDetails(value = USER_EMAIL)
     void createAfterDeadline() throws Exception {
         ClockHolder.setClock(CLOCK_NEW_DAY_AFTER_DEADLINE);
-        perform(MockMvcRequestBuilders.post(REST_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(JsonUtil.writeValue(RESTAURANT2_ID)))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(content().string(containsString(TOO_LATE_TO_VOTE_ERROR)));
-    }
-
-    @Test
-    @WithUserDetails(value = USER_EMAIL)
-    void updateBeforeDeadline() throws Exception {
-        ClockHolder.setClock(CLOCK_EXISTED_DAY_BEFORE_DEADLINE);
         ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(JsonUtil.writeValue(RESTAURANT2_ID)))
                 .andExpect(status().isCreated());
 
-        Vote updated = VOTE_MATCHER.readFromJson(action);
-        Vote updatedUserVote3 = new Vote(userVote3);
-        updatedUserVote3.setRestaurant(restaurant2);
-        VOTE_MATCHER.assertMatch(updated, updatedUserVote3);
-        VOTE_MATCHER.assertMatch(voteRepository.getExisted(updated.getId()), updatedUserVote3);
+        Vote created = VOTE_MATCHER.readFromJson(action);
+        int newId = created.id();
+        newVote.setId(newId);
+        VOTE_MATCHER.assertMatch(created, newVote);
+        VOTE_MATCHER.assertMatch(voteRepository.getExisted(newId), newVote);
+    }
+
+    @Test
+    @WithUserDetails(value = USER_EMAIL)
+    void createSecondVotePerDay() throws Exception {
+        ClockHolder.setClock(CLOCK_VOTE1_DAY_BEFORE_DEADLINE);
+        perform(MockMvcRequestBuilders.post(REST_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(RESTAURANT2_ID)))
+                .andExpect(status().isConflict())
+                .andExpect(content().string(containsString(SECOND_VOTE_CREATION_ERROR)));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    @WithUserDetails(value = USER_EMAIL)
+    void updateBeforeDeadline() throws Exception {
+        ClockHolder.setClock(CLOCK_VOTE1_DAY_BEFORE_DEADLINE);
+        Vote updated = VoteTestData.getUpdated();
+        perform(MockMvcRequestBuilders.put(REST_URL_WITH_SLASH + USER_VOTE1_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(updated)))
+                .andExpect(status().isNoContent());
+        ;
+
+        VOTE_MATCHER.assertMatch(voteRepository.get(USER_VOTE1_ID, USER_ID).get(), updated);
     }
 
 
     @Test
     @WithUserDetails(value = USER_EMAIL)
     void updateAfterDeadline() throws Exception {
-        ClockHolder.setClock(CLOCK_EXISTED_DAY_AFTER_DEADLINE);
-        perform(MockMvcRequestBuilders.post(REST_URL)
+        ClockHolder.setClock(CLOCK_VOTE1_DAY_AFTER_DEADLINE);
+        Vote updated = VoteTestData.getUpdated();
+        perform(MockMvcRequestBuilders.put(REST_URL_WITH_SLASH + USER_VOTE1_ID)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(JsonUtil.writeValue(RESTAURANT2_ID)))
+                .content(JsonUtil.writeValue(updated)))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(content().string(containsString(TOO_LATE_TO_VOTE_ERROR)));
+    }
+
+    @Test
+    @WithUserDetails(value = USER_EMAIL)
+    void updateAnotherUserVote() throws Exception {
+        ClockHolder.setClock(CLOCK_VOTE1_DAY_BEFORE_DEADLINE);
+        Vote anotherUserVoteUpdated = anotherUserVote1;
+        anotherUserVoteUpdated.setRestaurant(restaurant1);
+        perform(MockMvcRequestBuilders.put(REST_URL_WITH_SLASH + ANOTHER_USER_VOTE1_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(anotherUserVoteUpdated)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    @WithUserDetails(value = USER_EMAIL)
+    void updateNotTodayVote() throws Exception {
+        ClockHolder.setClock(CLOCK_VOTE1_DAY_BEFORE_DEADLINE);
+        Vote updated = VoteTestData.getUpdated();
+        updated.setDate(userVote2.getDate());
+        perform(MockMvcRequestBuilders.put(REST_URL_WITH_SLASH + USER_VOTE1_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(updated)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(content().string(containsString(CHANGE_NOT_TODAY_VOTE_ERROR)));
+    }
+
+    @Test
+    void updateUnauth() throws Exception {
+        Vote updated = VoteTestData.getUpdated();
+        perform(MockMvcRequestBuilders.put(REST_URL_WITH_SLASH + USER_VOTE1_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(updated)))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

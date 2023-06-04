@@ -4,13 +4,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.mshamanin.voteforlunch.model.Menu;
 import ru.mshamanin.voteforlunch.web.AbstractRestControllerTest;
+
+import java.util.List;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static ru.mshamanin.voteforlunch.web.dish.DishTestData.rest1Menu1Dishes;
 import static ru.mshamanin.voteforlunch.web.menu.MenuTestData.*;
 import static ru.mshamanin.voteforlunch.web.restaurant.RestaurantTestData.RESTAURANT1_ID;
 import static ru.mshamanin.voteforlunch.web.user.UserTestData.USER_EMAIL;
@@ -69,14 +69,13 @@ public class MenuRestControllerTest extends AbstractRestControllerTest {
 
     @Test
     @WithUserDetails(value = USER_EMAIL)
-    void getWithDishes() throws Exception {
-        Menu withDishes = new Menu(rest1Menu1);
-        withDishes.setDishes(rest1Menu1Dishes);
-        perform(MockMvcRequestBuilders.get(REST_URL_WITH_RESTAURANT1_ID_AND_SLASH
-                + RESTAURANT1_MENU1_ID + "/with-dishes"))
+    void getByDateAndNameContaining() throws Exception {
+        perform(MockMvcRequestBuilders.get(REST_URL_WITH_RESTAURANT1_ID_AND_SLASH + "by-date-and-name")
+                .param("date", "2023-01-30")
+                .param("name", "греч"))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MENU_WITH_DISHES_MATCHER.contentJson(withDishes));
+                .andExpect(MENU_MATCHER.contentJson(List.of(rest1Menu4)));
     }
 }

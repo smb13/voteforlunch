@@ -2,15 +2,12 @@ package ru.mshamanin.voteforlunch.web.restaurant;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.mshamanin.voteforlunch.model.Restaurant;
-import ru.mshamanin.voteforlunch.repository.RestaurantRepository;
 
 import java.net.URI;
 import java.util.List;
@@ -20,14 +17,10 @@ import static ru.mshamanin.voteforlunch.util.validation.ValidationUtil.checkNew;
 import static ru.mshamanin.voteforlunch.web.restaurant.AdminRestaurantRestController.REST_URL;
 
 @RestController
-@Slf4j
-@AllArgsConstructor
 @RequestMapping(value = REST_URL, produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Restaurant REST-controller for admins")
-public class AdminRestaurantRestController {
+public class AdminRestaurantRestController extends AbstractRestaurantController {
     static final String REST_URL = "/api/admin/restaurants";
-
-    private RestaurantRepository restaurantRepository;
 
     @GetMapping
     @Operation(summary = "Get all restaurants")
@@ -40,7 +33,7 @@ public class AdminRestaurantRestController {
     @Operation(summary = "Get restaurant with {id}")
     public Restaurant get(@PathVariable int id) {
         log.info("get {}", id);
-        return restaurantRepository.getExisted(id);
+        return super.get(id);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -60,7 +53,7 @@ public class AdminRestaurantRestController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable int id) {
         log.info("delete {}", id);
-        restaurantRepository.deleteExisted(id);
+        super.delete(id);
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)

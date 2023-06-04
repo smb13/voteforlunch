@@ -13,7 +13,6 @@ import ru.mshamanin.voteforlunch.util.DateTimeUtil;
 
 @Service
 @AllArgsConstructor
-@Transactional(readOnly = true)
 public class VoteService {
     public static final String TOO_LATE_TO_VOTE_ERROR = "It's too late to vote for restaurant.";
     public static final String CHANGE_NOT_TODAY_VOTE_ERROR = "To change your not today vote is prohibited.";

@@ -29,7 +29,6 @@ logging:
   level:
     root: WARN
     ru.mshamanin.voteforlunch: DEBUG
-    org.springframework.cache: TRACE
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
 
 server.servlet:

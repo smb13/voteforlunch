@@ -95,7 +95,7 @@ public class VoteRestControllerTest extends AbstractRestControllerTest {
     @Test
     @WithUserDetails(value = USER_EMAIL)
     void createBeforeDeadline() throws Exception {
-        ClockHolder.setClock(clockNewDayBeforeDeadLine);
+        ClockHolder.setClock(CLOCK_NEW_DAY_BEFORE_DEADLINE);
         ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(JsonUtil.writeValue(RESTAURANT2_ID)))
@@ -111,7 +111,7 @@ public class VoteRestControllerTest extends AbstractRestControllerTest {
     @Test
     @WithUserDetails(value = USER_EMAIL)
     void createAfterDeadline() throws Exception {
-        ClockHolder.setClock(clockNewDayAfterDeadline);
+        ClockHolder.setClock(CLOCK_NEW_DAY_AFTER_DEADLINE);
         ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(JsonUtil.writeValue(RESTAURANT2_ID)))
@@ -127,7 +127,7 @@ public class VoteRestControllerTest extends AbstractRestControllerTest {
     @Test
     @WithUserDetails(value = USER_EMAIL)
     void createSecondVotePerDay() throws Exception {
-        ClockHolder.setClock(clockVote1DayBeforeDeadline);
+        ClockHolder.setClock(CLOCK_VOTE1_DAY_BEFORE_DEADLINE);
         perform(MockMvcRequestBuilders.post(REST_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(JsonUtil.writeValue(RESTAURANT2_ID)))
@@ -139,7 +139,7 @@ public class VoteRestControllerTest extends AbstractRestControllerTest {
     @Transactional(propagation = Propagation.NEVER)
     @WithUserDetails(value = USER_EMAIL)
     void updateBeforeDeadline() throws Exception {
-        ClockHolder.setClock(clockVote1DayBeforeDeadline);
+        ClockHolder.setClock(CLOCK_VOTE1_DAY_BEFORE_DEADLINE);
         Vote updated = VoteTestData.getUpdated();
         perform(MockMvcRequestBuilders.put(REST_URL_WITH_SLASH + USER_VOTE1_ID)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -154,7 +154,7 @@ public class VoteRestControllerTest extends AbstractRestControllerTest {
     @Test
     @WithUserDetails(value = USER_EMAIL)
     void updateAfterDeadline() throws Exception {
-        ClockHolder.setClock(clockVote1DayAfterDeadline);
+        ClockHolder.setClock(CLOCK_VOTE1_DAY_AFTER_DEADLINE);
         Vote updated = VoteTestData.getUpdated();
         perform(MockMvcRequestBuilders.put(REST_URL_WITH_SLASH + USER_VOTE1_ID)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -166,7 +166,7 @@ public class VoteRestControllerTest extends AbstractRestControllerTest {
     @Test
     @WithUserDetails(value = USER_EMAIL)
     void updateAnotherUserVote() throws Exception {
-        ClockHolder.setClock(clockVote1DayBeforeDeadline);
+        ClockHolder.setClock(CLOCK_VOTE1_DAY_BEFORE_DEADLINE);
         Vote anotherUserVoteUpdated = anotherUserVote1;
         anotherUserVoteUpdated.setRestaurant(restaurant1);
         perform(MockMvcRequestBuilders.put(REST_URL_WITH_SLASH + ANOTHER_USER_VOTE1_ID)
@@ -178,7 +178,7 @@ public class VoteRestControllerTest extends AbstractRestControllerTest {
     @Test
     @WithUserDetails(value = USER_EMAIL)
     void updateNotTodayVote() throws Exception {
-        ClockHolder.setClock(clockVote1DayBeforeDeadline);
+        ClockHolder.setClock(CLOCK_VOTE1_DAY_BEFORE_DEADLINE);
         Vote updated = VoteTestData.getUpdated();
         updated.setDate(userVote2.getDate());
         perform(MockMvcRequestBuilders.put(REST_URL_WITH_SLASH + USER_VOTE1_ID)
@@ -208,7 +208,7 @@ public class VoteRestControllerTest extends AbstractRestControllerTest {
     @Test
     @WithUserDetails(value = USER_EMAIL)
     void createWithRestaurantNotFound() throws Exception {
-        ClockHolder.setClock(clockNewDayBeforeDeadLine);
+        ClockHolder.setClock(CLOCK_NEW_DAY_BEFORE_DEADLINE);
         perform(MockMvcRequestBuilders.post(REST_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(JsonUtil.writeValue(RESTAURANT_ID_NOT_FOUND)))
